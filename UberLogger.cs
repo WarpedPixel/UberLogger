@@ -251,7 +251,7 @@ namespace UberLogger
         static bool AlreadyLogging = false;
         static Regex UnityMessageRegex;
         static List<IFilter> Filters = new List<IFilter>();
-        
+
         static Logger()
         {
             // Register with Unity's logging system
@@ -273,7 +273,7 @@ namespace UberLogger
         {
             UnityLogInternal(logString, stackTrace, logType);
         }
-    
+
         static public double GetRelativeTime()
         {
             long ticks = DateTime.Now.Ticks;
@@ -301,6 +301,21 @@ namespace UberLogger
                     Loggers.Add(logger);
                 }
             }
+        }
+
+        /// <summary>
+        /// Removes a logger backend, if it had been added. Returns true if it was actually removed.
+        /// </summary>
+        static public bool RemoveLogger(ILogger logger)
+        {
+            lock(Loggers)
+            {
+                if(Loggers.Contains(logger))
+                {
+                    return Loggers.Remove(logger);
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -340,7 +355,7 @@ namespace UberLogger
             }
             return false;
         }
-    
+
 
         /// <summary>
         /// Tries to extract useful information about the log from a Unity stack trace
@@ -470,7 +485,7 @@ namespace UberLogger
                     if (showHideMode == IgnoredUnityMethod.Mode.Show)
                     {
                         var logStackFrame = new LogStackFrame(stackFrame);
-                        
+
                         callstack.Add(logStackFrame);
 
                         if (setOriginatingSourceLocation)
@@ -481,7 +496,7 @@ namespace UberLogger
 
             // Callstack has been processed backwards -- correct order for presentation
             callstack.Reverse();
-        
+
             return false;
         }
 
@@ -527,7 +542,7 @@ namespace UberLogger
                     try
                     {
                         AlreadyLogging = true;
-                    
+
                         var callstack = new List<LogStackFrame>();
                         LogStackFrame originatingSourceLocation;
                         var unityOnly = GetCallstack(ref callstack, out originatingSourceLocation);
@@ -536,7 +551,7 @@ namespace UberLogger
                             return;
                         }
 
-                        //If we have no useful callstack, fall back to parsing Unity's callstack 
+                        //If we have no useful callstack, fall back to parsing Unity's callstack
                         if(callstack.Count==0)
                         {
                             callstack = GetCallstackFromUnityLog(unityCallStack, out originatingSourceLocation);
@@ -554,7 +569,7 @@ namespace UberLogger
 
                         string filename = "";
                         int lineNumber = 0;
-                    
+
                         //Finally, parse the error message so we can get basic file and line information
                         if(ExtractInfoFromUnityMessage(unityMessage, ref filename, ref lineNumber))
                         {
@@ -602,7 +617,7 @@ namespace UberLogger
                             if (!filter.ApplyFilter(channel, source, severity, message, par))
                                 return;
                         }
-						
+
                         var callstack = new List<LogStackFrame>();
                         LogStackFrame originatingSourceLocation;
                         var unityOnly = GetCallstack(ref callstack, out originatingSourceLocation);
